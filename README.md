@@ -36,4 +36,8 @@ and point to its persistent *.onion address.
 
 ![Screenshot of Application](https://github.com/matr1xprogrammer/tor-ip-locate/blob/master/Screenshot.png)
 
+### Dependencies
+
+Relies on IP Address service located at http://ipinfo.io/
+
 

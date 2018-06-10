@@ -19,7 +19,7 @@ def countries():
   """
   cc={}
   for country in list(pycountry.countries):
-     cc[country.alpha2]=country.name
+     cc[country.alpha_2]=country.name
 
   return cc
   

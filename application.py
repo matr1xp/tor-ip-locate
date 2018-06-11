@@ -63,7 +63,7 @@ def query2(url):
     return "Unable to reach %s (%s)" % (url, exc)
     
 
-def get_info(anonymize = False, ip = ''):
+def get_info(anonymize = False, ip = '', qry = ''):
   if anonymize == True :
     tor_process = stem.process.launch_tor_with_config(
       config = {
@@ -83,29 +83,25 @@ def get_info(anonymize = False, ip = ''):
     info = json.loads(str(json_str))
     try:
       info['country_name'] = countries()[info['country']]
-      info['location_title'] = (info['city'] + ', ' if len(info['city']) > 0 else '') + (info['region'] + ' ' if len(info['region']) > 0 else '')
-      info['map'] = Markup("<img src='https://maps.googleapis.com/maps/api/staticmap?center=" +  info['loc'] + "&zoom=12&size=640x640&maptype=hybrid&markers=color:0x39FF14|" + info['loc'] +"' class='map' alt='" + info['location_title'] +"' title='" + info['location_title'] + "'>")
-      info['lat'] = info['loc'].split(',')[0]
-      info['long'] = info['loc'].split(',')[1]
-      info['zoomlevel'] = 12
+    except KeyError:
+      info['country_name'] = 'N/A'
+
+    info['location_title'] = (info['city'] + ', ' if len(info['city']) > 0 else '') + (info['region'] + ' ' if len(info['region']) > 0 else '')
+    
+    info['map'] = Markup("<img src='https://maps.googleapis.com/maps/api/staticmap?center=" +  info['loc'] + "&zoom=12&size=640x640&maptype=hybrid&markers=color:0x39FF14|" + info['loc'] +"' class='map' alt='" + info['location_title'] +"' title='" + info['location_title'] + "'>")
+    info['lat'] = info['loc'].split(',')[0]
+    info['long'] = info['loc'].split(',')[1]
+    info['zoomlevel'] = 12
+    info['query'] = qry
+   
+    try:
       if re.search('no hostname', info['hostname'], re.IGNORECASE):
         try:
           info['hostname'] = socket.gethostbyaddr(info['ip'])[0]
         except socket.herror as exc:
           print "Unknown host"
-          
     except KeyError as exc:
-      print "Unable to get location data: %s" % str(json_str)
-      #info['404'] = True
-      info['hostname'] = ''
-      info['loc'] = '0,0'
-      info['location_title'] = 'Unknown location'
-      info['country_name'] = ''
-      info['org'] = ''
-      info['post'] = ''
-      info['lat'] = '0'
-      info['long'] = '0'
-      info['zoomlevel'] = 1
+      info['hostname'] = qry
       
   except ValueError as exc:
     if anonymize == True :
@@ -130,16 +126,17 @@ def index():
 def map():
   try:
     if request.method == 'POST':
-      qry = request.form['query']
+      ip = qry = request.form['query']
+      print "Input: %s" % str(qry)
       try:
         socket.inet_aton(qry)
       except socket.error:
         try:
-          qry = socket.gethostbyname(qry)
-        except socket.gaierror:
-          qry = '0.0.0.0'
+          ip = socket.gethostbyname(qry)
+        except socket.gaierror as e:
+          ip = '0.0.0.0'
           
-      info = get_info(False, qry)
+      info = get_info(False, ip, qry)
 
     else:
       info = get_info(False)
@@ -156,9 +153,9 @@ def tor():
       try:
         socket.inet_aton(qry)
       except socket.error:
-        qry = socket.gethostbyname(qry)
+        ip = socket.gethostbyname(qry)
        
-      info = get_info(True, qry)
+      info = get_info(True, ip, qry)
 
     else:
       info = get_info(True)

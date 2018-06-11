@@ -40,7 +40,7 @@
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">Net Locator</a>
                 <form id="ip_locator" method="post">
-                    <input type="text" name="query" size="15" value="{{ data['ip'] }}" />
+                    <input type="text" name="query" size="15" value="{{ data['query'] }}" />
                 </form>
             </div>
             <div class="navbar-right">
@@ -107,7 +107,7 @@
         $ = jQuery;
         var s = null;
         $( document ).ready(function() {
-            $('input[name="query"]').val("{{ data['ip'] }}");
+            $('input[name="query"]').val("{{ data['query'] }}");
             console.debug("Document ready");
         });  
         $('input').bind("doPost",function(e){

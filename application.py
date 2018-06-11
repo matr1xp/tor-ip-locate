@@ -82,26 +82,31 @@ def get_info(anonymize = False, ip = '', qry = ''):
     print str(json_str)
     info = json.loads(str(json_str))
     try:
-      info['country_name'] = countries()[info['country']]
-    except KeyError:
-      info['country_name'] = 'N/A'
-
-    info['location_title'] = (info['city'] + ', ' if len(info['city']) > 0 else '') + (info['region'] + ' ' if len(info['region']) > 0 else '')
-    
-    info['map'] = Markup("<img src='https://maps.googleapis.com/maps/api/staticmap?center=" +  info['loc'] + "&zoom=12&size=640x640&maptype=hybrid&markers=color:0x39FF14|" + info['loc'] +"' class='map' alt='" + info['location_title'] +"' title='" + info['location_title'] + "'>")
-    info['lat'] = info['loc'].split(',')[0]
-    info['long'] = info['loc'].split(',')[1]
-    info['zoomlevel'] = 12
-    info['query'] = qry
-   
-    try:
-      if re.search('no hostname', info['hostname'], re.IGNORECASE):
+      if info['ip'] == '0.0.0.0':
+        info['404'] = True
+      else:
         try:
-          info['hostname'] = socket.gethostbyaddr(info['ip'])[0]
-        except socket.herror as exc:
-          print "Unknown host"
-    except KeyError as exc:
-      info['hostname'] = qry
+          info['country_name'] = countries()[info['country']]
+        except KeyError:
+          info['country_name'] = 'N/A'
+
+        info['location_title'] = (info['city'] + ', ' if len(info['city']) > 0 else '') + (info['region'] + ' ' if len(info['region']) > 0 else '')
+        
+        info['map'] = Markup("<img src='https://maps.googleapis.com/maps/api/staticmap?center=" +  info['loc'] + "&zoom=12&size=640x640&maptype=hybrid&markers=color:0x39FF14|" + info['loc'] +"' class='map' alt='" + info['location_title'] +"' title='" + info['location_title'] + "'>")
+        info['lat'] = info['loc'].split(',')[0]
+        info['long'] = info['loc'].split(',')[1]
+        info['zoomlevel'] = 12
+        
+        try:
+          if re.search('no hostname', info['hostname'], re.IGNORECASE):
+            try:
+              info['hostname'] = socket.gethostbyaddr(info['ip'])[0]
+            except socket.herror as exc:
+              print "Unknown host"
+        except KeyError as exc:
+          info['hostname'] = qry
+    except KeyError:
+      info['404'] = True
       
   except ValueError as exc:
     if anonymize == True :
@@ -109,7 +114,9 @@ def get_info(anonymize = False, ip = '', qry = ''):
     
     print "Unable to get location data: %s" % str(json_str)
     info['loc'] = '0,0'
-   
+  
+  info['query'] = qry
+
   if anonymize == True :
     tor_process.kill()   
   
